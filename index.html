@@ -426,17 +426,17 @@
   <header>
     <span class="logo-icon">👕</span>
     <h1>Laundry<span>Alert</span></h1>
-    <p class="tagline">Is it safe to hang the wash outside?</p>
+    <p class="tagline" data-i18n="tagline">Is it safe to hang the wash outside?</p>
   </header>
 
   <!-- Settings -->
   <div class="card">
-    <div class="card-title">⚙ Your settings</div>
+    <div class="card-title" data-i18n="settingsTitle">⚙ Your settings</div>
 
     <div class="input-row">
       <label>
-        Washing machine time
-        <small>How long your wash cycle takes</small>
+        <span data-i18n="washTimeLabel">Washing machine time</span>
+        <small data-i18n="washTimeHint">How long your wash cycle takes</small>
       </label>
       <input type="range" id="washTime" min="30" max="180" step="10" value="60" oninput="updateVal('washTime','washVal','min')" />
       <span class="val-badge" id="washVal">60 min</span>
@@ -444,8 +444,8 @@
 
     <div class="input-row">
       <label>
-        Drying method
-        <small>Affects estimated dry time</small>
+        <span data-i18n="dryMethodLabel">Drying method</span>
+        <small data-i18n="dryMethodHint">Affects estimated dry time</small>
       </label>
       <select id="dryMethod" style="flex:1;padding:6px 10px;border-radius:8px;border:1.5px solid var(--border);font-family:inherit;font-size:0.82rem;background:white;color:var(--text)">
         <option value="outside">Outside on a line</option>
@@ -457,17 +457,17 @@
 
   <!-- Location -->
   <div class="card">
-    <div class="card-title">📍 Location & weather</div>
+    <div class="card-title" data-i18n="locationTitle">📍 Location & weather</div>
 
     <div class="loc-tabs">
-      <button class="loc-tab active" id="tabGps" onclick="switchTab('gps')">📡 Use my location</button>
-      <button class="loc-tab" id="tabManual" onclick="switchTab('manual')">🔍 Search by name</button>
+      <button class="loc-tab active" id="tabGps" onclick="switchTab('gps')" data-i18n="tabGps">📡 Use my location</button>
+      <button class="loc-tab" id="tabManual" onclick="switchTab('manual')" data-i18n="tabManual">🔍 Search by name</button>
     </div>
 
     <!-- GPS panel -->
     <div class="loc-panel active" id="panelGps">
       <button class="loc-btn" id="locBtn" onclick="getLocation()">
-        <span>📡</span> Detect my location
+        <span>📡</span> <span id="locBtnText">Detect my location</span>
       </button>
     </div>
 
@@ -476,7 +476,7 @@
       <div class="search-row">
         <input class="search-input" id="cityInput" type="text" placeholder="e.g. Tokyo, London, New York…"
           oninput="onCityInput()" onkeydown="if(event.key==='Enter')searchCity()" />
-        <button class="search-go" id="searchGoBtn" onclick="searchCity()">Search</button>
+        <button class="search-go" id="searchGoBtn" onclick="searchCity()" data-i18n="searchBtn">Search</button>
       </div>
       <div class="suggestions" id="suggestions"></div>
     </div>
@@ -485,7 +485,7 @@
   </div>
 
   <!-- Check button -->
-  <button class="check-btn" id="checkBtn" onclick="checkLaundry()" disabled>
+  <button class="check-btn" id="checkBtn" onclick="checkLaundry()" disabled data-i18n="checkBtn">
     Check if it's safe to do laundry →
   </button>
 
@@ -502,12 +502,164 @@
     <div class="reason" id="reason"></div>
   </div>
 
-  <footer>
+  <footer data-i18n="footer">
     Weather via Open-Meteo · No data stored · Refresh to recheck
   </footer>
 </div>
 
 <script>
+  const LANG = (navigator.language || '').toLowerCase().startsWith('es') ? 'es' : 'en';
+
+  const TRANSLATIONS = {
+    en: {
+      tagline: "Is it safe to hang the wash outside?",
+      settingsTitle: "⚙ Your settings",
+      washTimeLabel: "Washing machine time",
+      washTimeHint: "How long your wash cycle takes",
+      dryMethodLabel: "Drying method",
+      dryMethodHint: "Affects estimated dry time",
+      dryOutside: "Outside on a line",
+      dryRackIn: "Indoor rack",
+      dryRackOut: "Outdoor rack / balcony",
+      locationTitle: "📍 Location & weather",
+      tabGps: "📡 Use my location",
+      tabManual: "🔍 Search by name",
+      detectBtn: "Detect my location",
+      searchPlaceholder: "e.g. Tokyo, London, New York…",
+      searchBtn: "Search",
+      checkBtn: "Check if it's safe to do laundry →",
+      locInitial: "Location needed to check the weather.",
+      detecting: "Detecting...",
+      requestingLoc: "Requesting location...",
+      geoNotSupported: "Geolocation not supported by your browser.",
+      locationDetected: "Location detected",
+      tryAgain: "Try again",
+      locFailed: "Could not get location: ",
+      searching: "Searching…",
+      searchFound: n => `Found ${n} result${n > 1 ? 's' : ''} — pick one below.`,
+      searchNoResults: "No locations found. Try a different name.",
+      searchFailed: "Search failed. Check your connection.",
+      footer: "Weather via Open-Meteo · No data stored · Refresh to recheck",
+      notRecommended: "Not Recommended",
+      tooCold: "Too Cold",
+      dontStart: "Don't Start!",
+      notEnoughTime: "Not Enough Time",
+      riskyBeQuick: "Risky — Be Quick",
+      goForIt: "Go For It!",
+      errorVerdict: "Error",
+      errorSub: "Could not fetch weather data. Check your connection.",
+      subHumidity: "Humidity is too high for outdoor drying.",
+      subFreezing: "Temperatures are near freezing.",
+      subRainBeforeWash: r => `Rain expected in ~${r} min — before your wash even finishes.`,
+      subNotEnoughTime: (r, t) => `Rain in ~${r} min, clothes need ${t} min total.`,
+      subRisky: (r, t) => `Rain in ~${r} min. You have ~${Math.round(r - t)} min to spare.`,
+      subSafe: (dry, buf) => `Clothes should be dry in ~${dry} min. ${buf}`,
+      reasonHumidity: h => `Current humidity is ${h}% — clothes won't dry properly outside. Try an indoor rack or wait for better conditions.`,
+      reasonFreezing: t => `At ${t}°C, drying outside is not effective. Move the clothes indoors.`,
+      reasonRainBeforeWash: w => `Rain arrives before your ${w}-min wash cycle ends. Wait for a better window.`,
+      reasonNotEnoughTime: (w, dry, tot, r) => `Your wash takes ${w} min + ~${dry} min drying = ${tot} min. Rain is too close with only ${r} min window.`,
+      reasonRisky: (r, t) => `It's borderline. You'll finish with a ~${Math.round(r - t)}-min buffer. Bring clothes in early if the sky darkens.`,
+      reasonSafe: (w, dry, tot) => `Total time needed: ${w} min wash + ~${dry} min dry = ${tot} min. You have plenty of clear weather ahead.`,
+      rainNone: "No rain expected in the next 24 hours.",
+      rainIn: h => `Rain not expected for ~${h}h.`,
+      wiTemp: "🌡 Temperature",
+      wiHumidity: "💧 Humidity",
+      wiWind: "🌬 Wind",
+      wiCloud: "☁ Cloud cover",
+      tlWash: "⏰ Wash cycle",
+      tlDry: m => `🌿 Dry time (${m})`,
+      tlTotal: "📦 Total time needed",
+      tlRain: "🌧 Rain arrives in",
+      tlRainNow: "💦 Rain chance now",
+      tlRainNone: "None in 24h",
+      methodOutside: "Outdoor line",
+      methodRackIn: "Indoor rack",
+      methodRackOut: "Balcony rack",
+    },
+    es: {
+      tagline: "¿Es seguro tender la ropa fuera?",
+      settingsTitle: "⚙ Tu configuración",
+      washTimeLabel: "Tiempo de lavado",
+      washTimeHint: "Duración del ciclo de lavado",
+      dryMethodLabel: "Método de secado",
+      dryMethodHint: "Afecta al tiempo estimado de secado",
+      dryOutside: "Tendido exterior en cuerda",
+      dryRackIn: "Tendedero interior",
+      dryRackOut: "Tendedero exterior / balcón",
+      locationTitle: "📍 Ubicación y tiempo",
+      tabGps: "📡 Usar mi ubicación",
+      tabManual: "🔍 Buscar por nombre",
+      detectBtn: "Detectar mi ubicación",
+      searchPlaceholder: "p.ej. Madrid, Barcelona, Sevilla…",
+      searchBtn: "Buscar",
+      checkBtn: "Comprobar si es buen momento para tender →",
+      locInitial: "Necesitas ubicación para ver el tiempo.",
+      detecting: "Detectando...",
+      requestingLoc: "Solicitando ubicación...",
+      geoNotSupported: "La geolocalización no está disponible en tu navegador.",
+      locationDetected: "Ubicación detectada",
+      tryAgain: "Intentar de nuevo",
+      locFailed: "No se pudo obtener la ubicación: ",
+      searching: "Buscando…",
+      searchFound: n => `${n} resultado${n > 1 ? 's' : ''} encontrado${n > 1 ? 's' : ''} — elige uno.`,
+      searchNoResults: "No se encontraron lugares. Prueba con otro nombre.",
+      searchFailed: "Error al buscar. Comprueba tu conexión.",
+      footer: "Tiempo via Open-Meteo · Sin datos almacenados · Recarga para actualizar",
+      notRecommended: "No recomendado",
+      tooCold: "Demasiado frío",
+      dontStart: "¡No empieces!",
+      notEnoughTime: "No hay tiempo suficiente",
+      riskyBeQuick: "Arriesgado — Date prisa",
+      goForIt: "¡Adelante!",
+      errorVerdict: "Error",
+      errorSub: "No se pudieron obtener los datos del tiempo. Comprueba tu conexión.",
+      subHumidity: "La humedad es demasiado alta para secar fuera.",
+      subFreezing: "Las temperaturas están cerca de cero.",
+      subRainBeforeWash: r => `Se espera lluvia en ~${r} min — antes de que acabe tu lavado.`,
+      subNotEnoughTime: (r, t) => `Lluvia en ~${r} min, la ropa necesita ${t} min en total.`,
+      subRisky: (r, t) => `Lluvia en ~${r} min. Te sobran ~${Math.round(r - t)} min.`,
+      subSafe: (dry, buf) => `La ropa debería estar seca en ~${dry} min. ${buf}`,
+      reasonHumidity: h => `La humedad actual es del ${h}% — la ropa no se secará bien fuera. Usa un tendedero interior o espera mejores condiciones.`,
+      reasonFreezing: t => `A ${t}°C secar fuera no es eficaz. Pon la ropa dentro.`,
+      reasonRainBeforeWash: w => `Lloverá antes de que acabe tu ciclo de ${w} min. Espera un mejor momento.`,
+      reasonNotEnoughTime: (w, dry, tot, r) => `Tu lavado dura ${w} min + ~${dry} min de secado = ${tot} min en total. La lluvia llega en solo ${r} min.`,
+      reasonRisky: (r, t) => `Es límite. Terminarás con ~${Math.round(r - t)} min de margen. Mete la ropa pronto si se nubla.`,
+      reasonSafe: (w, dry, tot) => `Tiempo total: ${w} min lavado + ~${dry} min secado = ${tot} min. Tienes tiempo de sobra.`,
+      rainNone: "No se espera lluvia en las próximas 24 horas.",
+      rainIn: h => `No se espera lluvia en ~${h}h.`,
+      wiTemp: "🌡 Temperatura",
+      wiHumidity: "💧 Humedad",
+      wiWind: "🌬 Viento",
+      wiCloud: "☁ Nubosidad",
+      tlWash: "⏰ Ciclo de lavado",
+      tlDry: m => `🌿 Secado (${m})`,
+      tlTotal: "📦 Tiempo total necesario",
+      tlRain: "🌧 Lluvia en",
+      tlRainNow: "💦 Prob. lluvia ahora",
+      tlRainNone: "Ninguna en 24h",
+      methodOutside: "Exterior en cuerda",
+      methodRackIn: "Tendedero interior",
+      methodRackOut: "Tendedero balcón",
+    }
+  };
+
+  const T = TRANSLATIONS[LANG];
+
+  function applyLang() {
+    document.title = LANG === 'es' ? 'Alerta de Colada' : 'Laundry Alert';
+    document.documentElement.lang = LANG;
+    document.querySelectorAll('[data-i18n]').forEach(el => {
+      const v = T[el.dataset.i18n];
+      if (typeof v === 'string') el.textContent = v;
+    });
+    document.getElementById('cityInput').placeholder = T.searchPlaceholder;
+    document.querySelector('#dryMethod option[value="outside"]').textContent = T.dryOutside;
+    document.querySelector('#dryMethod option[value="rack_in"]').textContent = T.dryRackIn;
+    document.querySelector('#dryMethod option[value="rack_out"]').textContent = T.dryRackOut;
+    document.getElementById('locBtnText').textContent = T.detectBtn;
+    document.getElementById('locStatus').textContent = T.locInitial;
+  }
+
   let userLat = null, userLon = null;
   let citySearchTimeout = null;
 
@@ -520,10 +672,9 @@
     document.getElementById('tabManual').classList.toggle('active', tab === 'manual');
     document.getElementById('panelGps').classList.toggle('active', tab === 'gps');
     document.getElementById('panelManual').classList.toggle('active', tab === 'manual');
-    // Reset status when switching
     const status = document.getElementById('locStatus');
     status.className = 'loc-status';
-    status.textContent = 'Location needed to check the weather.';
+    status.textContent = T.locInitial;
     userLat = null; userLon = null;
     document.getElementById('checkBtn').disabled = true;
   }
@@ -585,38 +736,41 @@
     btn.disabled = true;
     btn.textContent = '…';
     status.className = 'loc-status';
-    status.textContent = 'Searching…';
+    status.textContent = T.searching;
     try {
       const r = await fetch(`https://nominatim.openstreetmap.org/search?q=${encodeURIComponent(q)}&format=json&limit=5&addressdetails=1`);
       const results = await r.json();
       if (results.length) {
         showSuggestions(results);
-        status.textContent = `Found ${results.length} result${results.length > 1 ? 's' : ''} — pick one below.`;
+        status.textContent = T.searchFound(results.length);
       } else {
         status.className = 'loc-status error';
-        status.textContent = 'No locations found. Try a different name.';
+        status.textContent = T.searchNoResults;
       }
     } catch {
       status.className = 'loc-status error';
-      status.textContent = 'Search failed. Check your connection.';
+      status.textContent = T.searchFailed;
     }
     btn.disabled = false;
-    btn.textContent = 'Search';
+    btn.textContent = T.searchBtn;
   }
 
   async function getLocation() {
     const btn = document.getElementById('locBtn');
+    const btnText = document.getElementById('locBtnText');
     const status = document.getElementById('locStatus');
     btn.classList.add('fetching');
-    btn.innerHTML = '<span>⏳</span> Detecting...';
+    btnText.textContent = T.detecting;
+    btn.querySelector('span').textContent = '⏳';
     status.className = 'loc-status';
-    status.textContent = 'Requesting location...';
+    status.textContent = T.requestingLoc;
 
     if (!navigator.geolocation) {
-      status.textContent = 'Geolocation not supported by your browser.';
+      status.textContent = T.geoNotSupported;
       status.className = 'loc-status error';
       btn.classList.remove('fetching');
-      btn.innerHTML = '<span>📡</span> Detect my location';
+      btn.querySelector('span').textContent = '📡';
+      btnText.textContent = T.detectBtn;
       return;
     }
 
@@ -633,22 +787,23 @@
           status.textContent = `📍 ${userLat.toFixed(4)}, ${userLon.toFixed(4)}`;
         }
         status.className = 'loc-status ok';
-        btn.innerHTML = '<span>✅</span> Location detected';
+        btn.querySelector('span').textContent = '✅';
+        btnText.textContent = T.locationDetected;
         btn.classList.remove('fetching');
         document.getElementById('checkBtn').disabled = false;
       },
       (err) => {
-        status.textContent = 'Could not get location: ' + err.message;
+        status.textContent = T.locFailed + err.message;
         status.className = 'loc-status error';
         btn.classList.remove('fetching');
-        btn.innerHTML = '<span>📡</span> Try again';
+        btn.querySelector('span').textContent = '📡';
+        btnText.textContent = T.tryAgain;
       },
       { timeout: 12000 }
     );
   }
 
   async function fetchWeather(lat, lon) {
-    // Open-Meteo: hourly temp, humidity, precipitation probability, windspeed, cloudcover
     const url = `https://api.open-meteo.com/v1/forecast?latitude=${lat}&longitude=${lon}` +
       `&hourly=temperature_2m,relative_humidity_2m,precipitation_probability,windspeed_10m,cloudcover,weathercode` +
       `&forecast_days=2&timezone=auto`;
@@ -657,23 +812,15 @@
     return r.json();
   }
 
-  // Estimate drying time in minutes given weather + method
   function estimateDryTime(temp, humidity, windspeed, cloudcover, method) {
-    // Base time (minutes) at ideal conditions (~25°C, 40% RH, light breeze, sunny)
     const bases = { outside: 90, rack_in: 180, rack_out: 120 };
     let base = bases[method];
-
-    // Temperature factor: colder = slower
     const tempFactor = Math.max(0.4, Math.min(1.5, 1 + (temp - 20) * 0.04));
-    // Humidity factor: higher = much slower
     const humFactor = Math.max(0.5, Math.min(2.5, 1 + (humidity - 40) * 0.025));
-    // Wind factor (outdoor only)
     let windFactor = 1;
     if (method !== 'rack_in') windFactor = Math.max(0.55, 1 - windspeed * 0.015);
-    // Cloud factor (outdoor only)
     let cloudFactor = 1;
     if (method !== 'rack_in') cloudFactor = 1 + (cloudcover / 100) * 0.25;
-
     return Math.round(base / tempFactor * humFactor * windFactor * cloudFactor);
   }
 
@@ -694,24 +841,22 @@
       const now = new Date();
       const times = data.hourly.time.map(t => new Date(t));
 
-      // Find current hour index
       let nowIdx = 0;
       for (let i = 0; i < times.length; i++) {
         if (times[i] <= now) nowIdx = i;
         else break;
       }
 
-      const temp     = data.hourly.temperature_2m[nowIdx];
-      const humidity = data.hourly.relative_humidity_2m[nowIdx];
-      const wind     = data.hourly.windspeed_10m[nowIdx];
-      const cloud    = data.hourly.cloudcover[nowIdx];
-      const precipNow= data.hourly.precipitation_probability[nowIdx];
+      const temp      = data.hourly.temperature_2m[nowIdx];
+      const humidity  = data.hourly.relative_humidity_2m[nowIdx];
+      const wind      = data.hourly.windspeed_10m[nowIdx];
+      const cloud     = data.hourly.cloudcover[nowIdx];
+      const precipNow = data.hourly.precipitation_probability[nowIdx];
 
-      const dryMins  = estimateDryTime(temp, humidity, wind, cloud, method);
+      const dryMins   = estimateDryTime(temp, humidity, wind, cloud, method);
       const totalMins = washMins + dryMins;
 
-      // Find when rain probability exceeds threshold in next 24h
-      const RAIN_THRESHOLD = 40; // %
+      const RAIN_THRESHOLD = 40;
       let rainInMins = null;
       for (let i = nowIdx; i < Math.min(nowIdx + 24, times.length); i++) {
         const minsFromNow = (times[i] - now) / 60000;
@@ -721,68 +866,65 @@
         }
       }
 
-      // Verdict logic
       let verdict, icon, cls, subtext, reasonText;
-      const safeMarginMins = 30; // buffer
+      const safeMarginMins = 30;
 
       const isDangerousHumidity = humidity > 85;
       const isFreezingTemp = temp < 5;
 
       if (isDangerousHumidity && method !== 'rack_in') {
-        cls = 'unsafe'; icon = '💧'; verdict = 'Not Recommended';
-        subtext = 'Humidity is too high for outdoor drying.';
-        reasonText = `Current humidity is ${humidity}% — clothes won't dry properly outside. Try an indoor rack or wait for better conditions.`;
+        cls = 'unsafe'; icon = '💧'; verdict = T.notRecommended;
+        subtext = T.subHumidity;
+        reasonText = T.reasonHumidity(humidity);
       } else if (isFreezingTemp && method !== 'rack_in') {
-        cls = 'unsafe'; icon = '🥶'; verdict = 'Too Cold';
-        subtext = 'Temperatures are near freezing.';
-        reasonText = `At ${temp.toFixed(1)}°C, drying outside is not effective. Move the clothes indoors.`;
+        cls = 'unsafe'; icon = '🥶'; verdict = T.tooCold;
+        subtext = T.subFreezing;
+        reasonText = T.reasonFreezing(temp.toFixed(1));
       } else if (rainInMins !== null && rainInMins < totalMins + safeMarginMins) {
         if (rainInMins < washMins) {
-          cls = 'unsafe'; icon = '🌧️'; verdict = 'Don\'t Start!';
-          subtext = `Rain expected in ~${Math.round(rainInMins)} min — before your wash even finishes.`;
-          reasonText = `Rain arrives before your ${washMins}-min wash cycle ends. Wait for a better window.`;
+          cls = 'unsafe'; icon = '🌧️'; verdict = T.dontStart;
+          subtext = T.subRainBeforeWash(Math.round(rainInMins));
+          reasonText = T.reasonRainBeforeWash(washMins);
         } else {
-          cls = 'unsafe'; icon = '⛈️'; verdict = 'Not Enough Time';
-          subtext = `Rain in ~${Math.round(rainInMins)} min, clothes need ${totalMins} min total.`;
-          reasonText = `Your wash takes ${washMins} min + ~${dryMins} min drying = ${totalMins} min. Rain is too close with only ${Math.round(rainInMins)} min window.`;
+          cls = 'unsafe'; icon = '⛈️'; verdict = T.notEnoughTime;
+          subtext = T.subNotEnoughTime(Math.round(rainInMins), totalMins);
+          reasonText = T.reasonNotEnoughTime(washMins, dryMins, totalMins, Math.round(rainInMins));
         }
       } else if (rainInMins !== null && rainInMins < totalMins + 90) {
-        cls = 'warn'; icon = '🌤️'; verdict = 'Risky — Be Quick';
-        subtext = `Rain in ~${Math.round(rainInMins)} min. You have ~${Math.round(rainInMins - totalMins)} min to spare.`;
-        reasonText = `It's borderline. You'll finish with a ~${Math.round(rainInMins - totalMins)}-min buffer. Bring clothes in early if the sky darkens.`;
+        cls = 'warn'; icon = '🌤️'; verdict = T.riskyBeQuick;
+        subtext = T.subRisky(Math.round(rainInMins), totalMins);
+        reasonText = T.reasonRisky(rainInMins, totalMins);
       } else {
-        cls = 'safe'; icon = '✅'; verdict = 'Go For It!';
-        const buf = rainInMins ? `Rain not expected for ~${Math.round(rainInMins / 60)}h.` : 'No rain expected in the next 24 hours.';
-        subtext = `Clothes should be dry in ~${dryMins} min. ${buf}`;
-        reasonText = `Total time needed: ${washMins} min wash + ~${dryMins} min dry = ${totalMins} min. You have plenty of clear weather ahead.`;
+        cls = 'safe'; icon = '✅'; verdict = T.goForIt;
+        const buf = rainInMins ? T.rainIn(Math.round(rainInMins / 60)) : T.rainNone;
+        subtext = T.subSafe(dryMins, buf);
+        reasonText = T.reasonSafe(washMins, dryMins, totalMins);
       }
 
-      // Render
       document.getElementById('resIcon').textContent = icon;
       document.getElementById('resVerdict').textContent = verdict;
       document.getElementById('resSub').textContent = subtext;
       document.getElementById('reason').textContent = reasonText;
 
-      const wg = document.getElementById('weatherGrid');
-      wg.innerHTML = `
-        <div class="weather-item"><div class="wi-label">🌡 Temperature</div><div class="wi-val">${temp.toFixed(1)}°C</div></div>
-        <div class="weather-item"><div class="wi-label">💧 Humidity</div><div class="wi-val">${humidity}%</div></div>
-        <div class="weather-item"><div class="wi-label">🌬 Wind</div><div class="wi-val">${wind.toFixed(1)} km/h</div></div>
-        <div class="weather-item"><div class="wi-label">☁ Cloud cover</div><div class="wi-val">${cloud}%</div></div>
+      const methodLabel = { outside: T.methodOutside, rack_in: T.methodRackIn, rack_out: T.methodRackOut }[method];
+
+      document.getElementById('weatherGrid').innerHTML = `
+        <div class="weather-item"><div class="wi-label">${T.wiTemp}</div><div class="wi-val">${temp.toFixed(1)}°C</div></div>
+        <div class="weather-item"><div class="wi-label">${T.wiHumidity}</div><div class="wi-val">${humidity}%</div></div>
+        <div class="weather-item"><div class="wi-label">${T.wiWind}</div><div class="wi-val">${wind.toFixed(1)} km/h</div></div>
+        <div class="weather-item"><div class="wi-label">${T.wiCloud}</div><div class="wi-val">${cloud}%</div></div>
       `;
 
       const rainStr = rainInMins != null
         ? `<span class="tl-val ${rainInMins < totalMins + safeMarginMins ? 'bad' : 'good'}">~${Math.round(rainInMins)} min</span>`
-        : `<span class="tl-val good">None in 24h</span>`;
-
-      const methodLabel = { outside: 'Outdoor line', rack_in: 'Indoor rack', rack_out: 'Balcony rack' }[method];
+        : `<span class="tl-val good">${T.tlRainNone}</span>`;
 
       document.getElementById('timeline').innerHTML = `
-        <div class="timeline-row"><span class="tl-label">⏰ Wash cycle</span><span class="tl-val">${washMins} min</span></div>
-        <div class="timeline-row"><span class="tl-label">🌿 Dry time (${methodLabel})</span><span class="tl-val warn">~${dryMins} min</span></div>
-        <div class="timeline-row"><span class="tl-label">📦 Total time needed</span><span class="tl-val">${totalMins} min</span></div>
-        <div class="timeline-row"><span class="tl-label">🌧 Rain arrives in</span>${rainStr}</div>
-        <div class="timeline-row"><span class="tl-label">💦 Rain chance now</span><span class="tl-val ${precipNow >= RAIN_THRESHOLD ? 'bad' : 'good'}">${precipNow}%</span></div>
+        <div class="timeline-row"><span class="tl-label">${T.tlWash}</span><span class="tl-val">${washMins} min</span></div>
+        <div class="timeline-row"><span class="tl-label">${T.tlDry(methodLabel)}</span><span class="tl-val warn">~${dryMins} min</span></div>
+        <div class="timeline-row"><span class="tl-label">${T.tlTotal}</span><span class="tl-val">${totalMins} min</span></div>
+        <div class="timeline-row"><span class="tl-label">${T.tlRain}</span>${rainStr}</div>
+        <div class="timeline-row"><span class="tl-label">${T.tlRainNow}</span><span class="tl-val ${precipNow >= RAIN_THRESHOLD ? 'bad' : 'good'}">${precipNow}%</span></div>
       `;
 
       result.className = 'result ' + cls;
@@ -791,8 +933,8 @@
 
     } catch (e) {
       document.getElementById('resIcon').textContent = '⚠️';
-      document.getElementById('resVerdict').textContent = 'Error';
-      document.getElementById('resSub').textContent = 'Could not fetch weather data. Check your connection.';
+      document.getElementById('resVerdict').textContent = T.errorVerdict;
+      document.getElementById('resSub').textContent = T.errorSub;
       document.getElementById('reason').textContent = e.message;
       document.getElementById('weatherGrid').innerHTML = '';
       document.getElementById('timeline').innerHTML = '';
@@ -803,6 +945,8 @@
     spinner.style.display = 'none';
     checkBtn.disabled = false;
   }
+
+  applyLang();
 </script>
 </body>
 </html>
