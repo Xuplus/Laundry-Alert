@@ -1,0 +1,808 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Laundry Alert</title>
+  <link href="https://fonts.googleapis.com/css2?family=Syne:wght@400;700;800&family=DM+Mono:wght@400;500&display=swap" rel="stylesheet" />
+  <style>
+    *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+    :root {
+      --sky: #d4eaff;
+      --sky-deep: #a8d0f5;
+      --cloud: #f0f8ff;
+      --text: #1a2535;
+      --muted: #5a7080;
+      --safe: #2eb872;
+      --safe-bg: #eafbf2;
+      --danger: #e83a3a;
+      --danger-bg: #fff0f0;
+      --warn: #e08c00;
+      --warn-bg: #fff8e6;
+      --card: #ffffffcc;
+      --border: #cce4f8;
+      --sun: #fbbf24;
+    }
+
+    body {
+      font-family: 'DM Mono', monospace;
+      background: var(--sky);
+      color: var(--text);
+      min-height: 100vh;
+      overflow-x: hidden;
+    }
+
+    /* Animated sky background */
+    .sky-bg {
+      position: fixed;
+      inset: 0;
+      z-index: 0;
+      background: linear-gradient(180deg, #b8d9f8 0%, #dbeeff 60%, #eef7ff 100%);
+      overflow: hidden;
+    }
+
+    .cloud {
+      position: absolute;
+      background: white;
+      border-radius: 999px;
+      opacity: 0.7;
+      animation: drift linear infinite;
+    }
+    .cloud::before, .cloud::after {
+      content: '';
+      position: absolute;
+      background: white;
+      border-radius: 999px;
+    }
+    .cloud-1 { width: 120px; height: 40px; top: 12%; left: -140px; animation-duration: 38s; }
+    .cloud-1::before { width: 70px; height: 55px; top: -30px; left: 18px; }
+    .cloud-1::after  { width: 50px; height: 40px; top: -18px; left: 55px; }
+
+    .cloud-2 { width: 180px; height: 50px; top: 28%; left: -210px; animation-duration: 55s; animation-delay: -20s; opacity: 0.5; }
+    .cloud-2::before { width: 90px; height: 70px; top: -38px; left: 25px; }
+    .cloud-2::after  { width: 65px; height: 50px; top: -22px; left: 80px; }
+
+    .cloud-3 { width: 90px; height: 32px; top: 8%; left: -110px; animation-duration: 46s; animation-delay: -10s; opacity: 0.6; }
+    .cloud-3::before { width: 55px; height: 44px; top: -24px; left: 12px; }
+    .cloud-3::after  { width: 40px; height: 32px; top: -14px; left: 40px; }
+
+    @keyframes drift { from { transform: translateX(0); } to { transform: translateX(110vw); } }
+
+    .sun-orb {
+      position: absolute;
+      top: 30px; right: 60px;
+      width: 80px; height: 80px;
+      border-radius: 50%;
+      background: radial-gradient(circle, #ffe17a, #fbbf24 60%, #f59e0b);
+      box-shadow: 0 0 40px 15px #fbbf2455, 0 0 80px 30px #fbbf2422;
+      animation: pulse-sun 4s ease-in-out infinite;
+    }
+    @keyframes pulse-sun { 0%,100%{box-shadow:0 0 40px 15px #fbbf2455,0 0 80px 30px #fbbf2422}50%{box-shadow:0 0 60px 25px #fbbf2466,0 0 100px 40px #fbbf2433} }
+
+    /* Layout */
+    .wrapper {
+      position: relative;
+      z-index: 1;
+      max-width: 540px;
+      margin: 0 auto;
+      padding: 40px 20px 60px;
+    }
+
+    header {
+      text-align: center;
+      margin-bottom: 36px;
+    }
+    .logo-icon {
+      font-size: 52px;
+      display: block;
+      margin-bottom: 8px;
+      animation: sway 3s ease-in-out infinite;
+      transform-origin: center top;
+    }
+    @keyframes sway { 0%,100%{transform:rotate(-4deg)}50%{transform:rotate(4deg)} }
+
+    h1 {
+      font-family: 'Syne', sans-serif;
+      font-size: 2.4rem;
+      font-weight: 800;
+      letter-spacing: -0.03em;
+      color: var(--text);
+      line-height: 1;
+    }
+    h1 span { color: #2e7dc8; }
+    .tagline {
+      margin-top: 8px;
+      color: var(--muted);
+      font-size: 0.78rem;
+      letter-spacing: 0.05em;
+      text-transform: uppercase;
+    }
+
+    /* Card */
+    .card {
+      background: var(--card);
+      border: 1.5px solid var(--border);
+      border-radius: 20px;
+      padding: 28px 28px;
+      backdrop-filter: blur(10px);
+      box-shadow: 0 4px 32px #a8d0f520;
+      margin-bottom: 16px;
+    }
+
+    .card-title {
+      font-family: 'Syne', sans-serif;
+      font-size: 0.7rem;
+      font-weight: 700;
+      letter-spacing: 0.12em;
+      text-transform: uppercase;
+      color: var(--muted);
+      margin-bottom: 18px;
+    }
+
+    /* Input group */
+    .input-row {
+      display: flex;
+      align-items: center;
+      gap: 12px;
+      margin-bottom: 14px;
+    }
+    .input-row label {
+      flex: 1;
+      font-size: 0.82rem;
+      color: var(--text);
+    }
+    .input-row label small {
+      display: block;
+      color: var(--muted);
+      font-size: 0.7rem;
+      margin-top: 2px;
+    }
+    .input-row input[type=range] {
+      flex: 0 0 120px;
+      accent-color: #2e7dc8;
+    }
+    .val-badge {
+      flex: 0 0 52px;
+      text-align: right;
+      font-size: 0.85rem;
+      font-weight: 500;
+      color: #2e7dc8;
+    }
+
+    /* Location tabs */
+    .loc-tabs {
+      display: flex;
+      gap: 6px;
+      margin-bottom: 16px;
+    }
+    .loc-tab {
+      flex: 1;
+      padding: 9px;
+      border-radius: 10px;
+      border: 1.5px solid var(--border);
+      background: white;
+      font-family: 'DM Mono', monospace;
+      font-size: 0.75rem;
+      cursor: pointer;
+      transition: all 0.18s;
+      color: var(--muted);
+      text-align: center;
+    }
+    .loc-tab:hover { border-color: #7ab8eb; color: var(--text); }
+    .loc-tab.active {
+      background: #2e7dc8;
+      border-color: #2e7dc8;
+      color: white;
+    }
+
+    .loc-panel { display: none; }
+    .loc-panel.active { display: block; }
+
+    /* Location */
+    .loc-btn {
+      width: 100%;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      gap: 8px;
+      padding: 13px;
+      border-radius: 12px;
+      border: 1.5px solid var(--border);
+      background: white;
+      font-family: 'DM Mono', monospace;
+      font-size: 0.82rem;
+      cursor: pointer;
+      transition: all 0.2s;
+      color: var(--text);
+    }
+    .loc-btn:hover { background: var(--sky); border-color: #7ab8eb; }
+    .loc-btn.fetching { opacity: 0.6; pointer-events: none; }
+
+    /* Manual search */
+    .search-row {
+      display: flex;
+      gap: 8px;
+    }
+    .search-input {
+      flex: 1;
+      padding: 11px 14px;
+      border-radius: 12px;
+      border: 1.5px solid var(--border);
+      background: white;
+      font-family: 'DM Mono', monospace;
+      font-size: 0.82rem;
+      color: var(--text);
+      outline: none;
+      transition: border-color 0.2s;
+    }
+    .search-input:focus { border-color: #7ab8eb; }
+    .search-input::placeholder { color: #aac4dc; }
+    .search-go {
+      padding: 11px 16px;
+      border-radius: 12px;
+      border: 1.5px solid #2e7dc8;
+      background: #2e7dc8;
+      color: white;
+      font-family: 'DM Mono', monospace;
+      font-size: 0.82rem;
+      cursor: pointer;
+      transition: all 0.2s;
+      white-space: nowrap;
+    }
+    .search-go:hover { background: #1a5fa0; border-color: #1a5fa0; }
+    .search-go:disabled { opacity: 0.5; pointer-events: none; }
+
+    /* Suggestions dropdown */
+    .suggestions {
+      margin-top: 6px;
+      border-radius: 12px;
+      border: 1.5px solid var(--border);
+      background: white;
+      overflow: hidden;
+      display: none;
+      box-shadow: 0 4px 20px #a8d0f530;
+    }
+    .suggestion-item {
+      padding: 10px 14px;
+      font-size: 0.78rem;
+      cursor: pointer;
+      border-bottom: 1px solid #eef5fb;
+      transition: background 0.15s;
+      color: var(--text);
+    }
+    .suggestion-item:last-child { border-bottom: none; }
+    .suggestion-item:hover { background: var(--sky); }
+    .suggestion-item small { color: var(--muted); font-size: 0.68rem; }
+
+    .loc-status {
+      margin-top: 10px;
+      font-size: 0.75rem;
+      color: var(--muted);
+      min-height: 18px;
+      text-align: center;
+    }
+    .loc-status.error { color: var(--danger); }
+    .loc-status.ok { color: var(--safe); }
+
+    /* Check button */
+    .check-btn {
+      width: 100%;
+      padding: 16px;
+      border-radius: 14px;
+      border: none;
+      background: linear-gradient(135deg, #2e7dc8, #1a5fa0);
+      color: white;
+      font-family: 'Syne', sans-serif;
+      font-weight: 700;
+      font-size: 1rem;
+      letter-spacing: 0.03em;
+      cursor: pointer;
+      transition: transform 0.15s, box-shadow 0.15s;
+      box-shadow: 0 4px 20px #2e7dc840;
+    }
+    .check-btn:hover { transform: translateY(-2px); box-shadow: 0 8px 28px #2e7dc855; }
+    .check-btn:active { transform: translateY(0); }
+    .check-btn:disabled { opacity: 0.5; pointer-events: none; }
+
+    /* Result */
+    .result {
+      display: none;
+      border-radius: 20px;
+      padding: 28px;
+      border: 2px solid transparent;
+      animation: pop-in 0.4s cubic-bezier(.34,1.56,.64,1);
+    }
+    @keyframes pop-in { from{opacity:0;transform:scale(0.92) translateY(12px)}to{opacity:1;transform:none} }
+
+    .result.safe   { background: var(--safe-bg);   border-color: var(--safe);   }
+    .result.unsafe { background: var(--danger-bg); border-color: var(--danger); }
+    .result.warn   { background: var(--warn-bg);   border-color: var(--warn);   }
+
+    .result-icon { font-size: 52px; text-align: center; display: block; margin-bottom: 10px; }
+    .result-verdict {
+      font-family: 'Syne', sans-serif;
+      font-size: 1.6rem;
+      font-weight: 800;
+      text-align: center;
+      margin-bottom: 6px;
+    }
+    .result.safe   .result-verdict { color: var(--safe); }
+    .result.unsafe .result-verdict { color: var(--danger); }
+    .result.warn   .result-verdict { color: var(--warn); }
+
+    .result-sub {
+      text-align: center;
+      font-size: 0.8rem;
+      color: var(--muted);
+      margin-bottom: 20px;
+    }
+
+    .weather-grid {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 10px;
+      margin-bottom: 16px;
+    }
+    .weather-item {
+      background: white;
+      border-radius: 12px;
+      padding: 12px 14px;
+      border: 1px solid #e0ecf8;
+    }
+    .weather-item .wi-label {
+      font-size: 0.65rem;
+      text-transform: uppercase;
+      letter-spacing: 0.08em;
+      color: var(--muted);
+      margin-bottom: 2px;
+    }
+    .weather-item .wi-val {
+      font-size: 1rem;
+      font-weight: 500;
+      color: var(--text);
+    }
+
+    .timeline {
+      background: white;
+      border-radius: 12px;
+      padding: 14px;
+      border: 1px solid #e0ecf8;
+      font-size: 0.78rem;
+    }
+    .timeline-row {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      padding: 5px 0;
+      border-bottom: 1px dashed #e0ecf8;
+    }
+    .timeline-row:last-child { border-bottom: none; }
+    .tl-label { color: var(--muted); }
+    .tl-val { font-weight: 500; }
+    .tl-val.good { color: var(--safe); }
+    .tl-val.bad  { color: var(--danger); }
+    .tl-val.warn { color: var(--warn); }
+
+    .reason {
+      margin-top: 14px;
+      font-size: 0.75rem;
+      color: var(--muted);
+      text-align: center;
+      line-height: 1.6;
+    }
+
+    /* Loading spinner */
+    .spinner {
+      display: none;
+      width: 22px; height: 22px;
+      border: 3px solid #2e7dc830;
+      border-top-color: #2e7dc8;
+      border-radius: 50%;
+      animation: spin 0.7s linear infinite;
+      margin: 0 auto;
+    }
+    @keyframes spin { to { transform: rotate(360deg); } }
+
+    footer {
+      text-align: center;
+      font-size: 0.68rem;
+      color: var(--muted);
+      margin-top: 28px;
+      opacity: 0.7;
+    }
+  </style>
+</head>
+<body>
+
+<div class="sky-bg">
+  <div class="sun-orb"></div>
+  <div class="cloud cloud-1"></div>
+  <div class="cloud cloud-2"></div>
+  <div class="cloud cloud-3"></div>
+</div>
+
+<div class="wrapper">
+  <header>
+    <span class="logo-icon">👕</span>
+    <h1>Laundry<span>Alert</span></h1>
+    <p class="tagline">Is it safe to hang the wash outside?</p>
+  </header>
+
+  <!-- Settings -->
+  <div class="card">
+    <div class="card-title">⚙ Your settings</div>
+
+    <div class="input-row">
+      <label>
+        Washing machine time
+        <small>How long your wash cycle takes</small>
+      </label>
+      <input type="range" id="washTime" min="30" max="180" step="10" value="60" oninput="updateVal('washTime','washVal','min')" />
+      <span class="val-badge" id="washVal">60 min</span>
+    </div>
+
+    <div class="input-row">
+      <label>
+        Drying method
+        <small>Affects estimated dry time</small>
+      </label>
+      <select id="dryMethod" style="flex:1;padding:6px 10px;border-radius:8px;border:1.5px solid var(--border);font-family:inherit;font-size:0.82rem;background:white;color:var(--text)">
+        <option value="outside">Outside on a line</option>
+        <option value="rack_in">Indoor rack</option>
+        <option value="rack_out">Outdoor rack / balcony</option>
+      </select>
+    </div>
+  </div>
+
+  <!-- Location -->
+  <div class="card">
+    <div class="card-title">📍 Location & weather</div>
+
+    <div class="loc-tabs">
+      <button class="loc-tab active" id="tabGps" onclick="switchTab('gps')">📡 Use my location</button>
+      <button class="loc-tab" id="tabManual" onclick="switchTab('manual')">🔍 Search by name</button>
+    </div>
+
+    <!-- GPS panel -->
+    <div class="loc-panel active" id="panelGps">
+      <button class="loc-btn" id="locBtn" onclick="getLocation()">
+        <span>📡</span> Detect my location
+      </button>
+    </div>
+
+    <!-- Manual search panel -->
+    <div class="loc-panel" id="panelManual">
+      <div class="search-row">
+        <input class="search-input" id="cityInput" type="text" placeholder="e.g. Tokyo, London, New York…"
+          oninput="onCityInput()" onkeydown="if(event.key==='Enter')searchCity()" />
+        <button class="search-go" id="searchGoBtn" onclick="searchCity()">Search</button>
+      </div>
+      <div class="suggestions" id="suggestions"></div>
+    </div>
+
+    <div class="loc-status" id="locStatus">Location needed to check the weather.</div>
+  </div>
+
+  <!-- Check button -->
+  <button class="check-btn" id="checkBtn" onclick="checkLaundry()" disabled>
+    Check if it's safe to do laundry →
+  </button>
+
+  <div style="text-align:center;margin:12px 0"><div class="spinner" id="spinner"></div></div>
+
+  <!-- Result -->
+  <div class="result" id="result">
+    <span class="result-icon" id="resIcon"></span>
+    <div class="result-verdict" id="resVerdict"></div>
+    <div class="result-sub" id="resSub"></div>
+
+    <div class="weather-grid" id="weatherGrid"></div>
+    <div class="timeline" id="timeline"></div>
+    <div class="reason" id="reason"></div>
+  </div>
+
+  <footer>
+    Weather via Open-Meteo · No data stored · Refresh to recheck
+  </footer>
+</div>
+
+<script>
+  let userLat = null, userLon = null;
+  let citySearchTimeout = null;
+
+  function updateVal(sliderId, displayId, unit) {
+    document.getElementById(displayId).textContent = document.getElementById(sliderId).value + ' ' + unit;
+  }
+
+  function switchTab(tab) {
+    document.getElementById('tabGps').classList.toggle('active', tab === 'gps');
+    document.getElementById('tabManual').classList.toggle('active', tab === 'manual');
+    document.getElementById('panelGps').classList.toggle('active', tab === 'gps');
+    document.getElementById('panelManual').classList.toggle('active', tab === 'manual');
+    // Reset status when switching
+    const status = document.getElementById('locStatus');
+    status.className = 'loc-status';
+    status.textContent = 'Location needed to check the weather.';
+    userLat = null; userLon = null;
+    document.getElementById('checkBtn').disabled = true;
+  }
+
+  function onCityInput() {
+    clearTimeout(citySearchTimeout);
+    const val = document.getElementById('cityInput').value.trim();
+    if (val.length < 2) { hideSuggestions(); return; }
+    citySearchTimeout = setTimeout(() => fetchSuggestions(val), 350);
+  }
+
+  async function fetchSuggestions(q) {
+    try {
+      const r = await fetch(`https://nominatim.openstreetmap.org/search?q=${encodeURIComponent(q)}&format=json&limit=5&addressdetails=1`);
+      const results = await r.json();
+      showSuggestions(results);
+    } catch { hideSuggestions(); }
+  }
+
+  function showSuggestions(results) {
+    const box = document.getElementById('suggestions');
+    if (!results.length) { hideSuggestions(); return; }
+    box.innerHTML = results.map((r, i) => {
+      const a = r.address;
+      const city = a.city || a.town || a.village || a.county || r.name;
+      const country = a.country || '';
+      const state = a.state ? `${a.state}, ` : '';
+      return `<div class="suggestion-item" onclick="selectPlace(${r.lat}, ${r.lon}, '${escQ(city)}', '${escQ(country)}')">
+        ${city} <small>${state}${country}</small>
+      </div>`;
+    }).join('');
+    box.style.display = 'block';
+  }
+
+  function hideSuggestions() {
+    const box = document.getElementById('suggestions');
+    box.style.display = 'none';
+    box.innerHTML = '';
+  }
+
+  function escQ(s) { return (s || '').replace(/'/g, "\\'"); }
+
+  function selectPlace(lat, lon, city, country) {
+    userLat = parseFloat(lat);
+    userLon = parseFloat(lon);
+    hideSuggestions();
+    document.getElementById('cityInput').value = city + (country ? `, ${country}` : '');
+    const status = document.getElementById('locStatus');
+    status.className = 'loc-status ok';
+    status.textContent = `📍 ${city}${country ? ', ' + country : ''} (${userLat.toFixed(3)}, ${userLon.toFixed(3)})`;
+    document.getElementById('checkBtn').disabled = false;
+  }
+
+  async function searchCity() {
+    const q = document.getElementById('cityInput').value.trim();
+    if (!q) return;
+    const btn = document.getElementById('searchGoBtn');
+    const status = document.getElementById('locStatus');
+    btn.disabled = true;
+    btn.textContent = '…';
+    status.className = 'loc-status';
+    status.textContent = 'Searching…';
+    try {
+      const r = await fetch(`https://nominatim.openstreetmap.org/search?q=${encodeURIComponent(q)}&format=json&limit=5&addressdetails=1`);
+      const results = await r.json();
+      if (results.length) {
+        showSuggestions(results);
+        status.textContent = `Found ${results.length} result${results.length > 1 ? 's' : ''} — pick one below.`;
+      } else {
+        status.className = 'loc-status error';
+        status.textContent = 'No locations found. Try a different name.';
+      }
+    } catch {
+      status.className = 'loc-status error';
+      status.textContent = 'Search failed. Check your connection.';
+    }
+    btn.disabled = false;
+    btn.textContent = 'Search';
+  }
+
+  async function getLocation() {
+    const btn = document.getElementById('locBtn');
+    const status = document.getElementById('locStatus');
+    btn.classList.add('fetching');
+    btn.innerHTML = '<span>⏳</span> Detecting...';
+    status.className = 'loc-status';
+    status.textContent = 'Requesting location...';
+
+    if (!navigator.geolocation) {
+      status.textContent = 'Geolocation not supported by your browser.';
+      status.className = 'loc-status error';
+      btn.classList.remove('fetching');
+      btn.innerHTML = '<span>📡</span> Detect my location';
+      return;
+    }
+
+    navigator.geolocation.getCurrentPosition(
+      async (pos) => {
+        userLat = pos.coords.latitude;
+        userLon = pos.coords.longitude;
+        try {
+          const r = await fetch(`https://nominatim.openstreetmap.org/reverse?lat=${userLat}&lon=${userLon}&format=json`);
+          const d = await r.json();
+          const place = d.address.city || d.address.town || d.address.village || d.address.county || 'your area';
+          status.textContent = `📍 ${place} (${userLat.toFixed(3)}, ${userLon.toFixed(3)})`;
+        } catch {
+          status.textContent = `📍 ${userLat.toFixed(4)}, ${userLon.toFixed(4)}`;
+        }
+        status.className = 'loc-status ok';
+        btn.innerHTML = '<span>✅</span> Location detected';
+        btn.classList.remove('fetching');
+        document.getElementById('checkBtn').disabled = false;
+      },
+      (err) => {
+        status.textContent = 'Could not get location: ' + err.message;
+        status.className = 'loc-status error';
+        btn.classList.remove('fetching');
+        btn.innerHTML = '<span>📡</span> Try again';
+      },
+      { timeout: 12000 }
+    );
+  }
+
+  async function fetchWeather(lat, lon) {
+    // Open-Meteo: hourly temp, humidity, precipitation probability, windspeed, cloudcover
+    const url = `https://api.open-meteo.com/v1/forecast?latitude=${lat}&longitude=${lon}` +
+      `&hourly=temperature_2m,relative_humidity_2m,precipitation_probability,windspeed_10m,cloudcover,weathercode` +
+      `&forecast_days=2&timezone=auto`;
+    const r = await fetch(url);
+    if (!r.ok) throw new Error('Weather fetch failed');
+    return r.json();
+  }
+
+  // Estimate drying time in minutes given weather + method
+  function estimateDryTime(temp, humidity, windspeed, cloudcover, method) {
+    // Base time (minutes) at ideal conditions (~25°C, 40% RH, light breeze, sunny)
+    const bases = { outside: 90, rack_in: 180, rack_out: 120 };
+    let base = bases[method];
+
+    // Temperature factor: colder = slower
+    const tempFactor = Math.max(0.4, Math.min(1.5, 1 + (temp - 20) * 0.04));
+    // Humidity factor: higher = much slower
+    const humFactor = Math.max(0.5, Math.min(2.5, 1 + (humidity - 40) * 0.025));
+    // Wind factor (outdoor only)
+    let windFactor = 1;
+    if (method !== 'rack_in') windFactor = Math.max(0.55, 1 - windspeed * 0.015);
+    // Cloud factor (outdoor only)
+    let cloudFactor = 1;
+    if (method !== 'rack_in') cloudFactor = 1 + (cloudcover / 100) * 0.25;
+
+    return Math.round(base / tempFactor * humFactor * windFactor * cloudFactor);
+  }
+
+  async function checkLaundry() {
+    const checkBtn = document.getElementById('checkBtn');
+    const spinner = document.getElementById('spinner');
+    const result = document.getElementById('result');
+
+    checkBtn.disabled = true;
+    spinner.style.display = 'block';
+    result.style.display = 'none';
+
+    const washMins = parseInt(document.getElementById('washTime').value);
+    const method = document.getElementById('dryMethod').value;
+
+    try {
+      const data = await fetchWeather(userLat, userLon);
+      const now = new Date();
+      const times = data.hourly.time.map(t => new Date(t));
+
+      // Find current hour index
+      let nowIdx = 0;
+      for (let i = 0; i < times.length; i++) {
+        if (times[i] <= now) nowIdx = i;
+        else break;
+      }
+
+      const temp     = data.hourly.temperature_2m[nowIdx];
+      const humidity = data.hourly.relative_humidity_2m[nowIdx];
+      const wind     = data.hourly.windspeed_10m[nowIdx];
+      const cloud    = data.hourly.cloudcover[nowIdx];
+      const precipNow= data.hourly.precipitation_probability[nowIdx];
+
+      const dryMins  = estimateDryTime(temp, humidity, wind, cloud, method);
+      const totalMins = washMins + dryMins;
+
+      // Find when rain probability exceeds threshold in next 24h
+      const RAIN_THRESHOLD = 40; // %
+      let rainInMins = null;
+      for (let i = nowIdx; i < Math.min(nowIdx + 24, times.length); i++) {
+        const minsFromNow = (times[i] - now) / 60000;
+        if (data.hourly.precipitation_probability[i] >= RAIN_THRESHOLD) {
+          rainInMins = minsFromNow;
+          break;
+        }
+      }
+
+      // Verdict logic
+      let verdict, icon, cls, subtext, reasonText;
+      const safeMarginMins = 30; // buffer
+
+      const isDangerousHumidity = humidity > 85;
+      const isFreezingTemp = temp < 5;
+
+      if (isDangerousHumidity && method !== 'rack_in') {
+        cls = 'unsafe'; icon = '💧'; verdict = 'Not Recommended';
+        subtext = 'Humidity is too high for outdoor drying.';
+        reasonText = `Current humidity is ${humidity}% — clothes won't dry properly outside. Try an indoor rack or wait for better conditions.`;
+      } else if (isFreezingTemp && method !== 'rack_in') {
+        cls = 'unsafe'; icon = '🥶'; verdict = 'Too Cold';
+        subtext = 'Temperatures are near freezing.';
+        reasonText = `At ${temp.toFixed(1)}°C, drying outside is not effective. Move the clothes indoors.`;
+      } else if (rainInMins !== null && rainInMins < totalMins + safeMarginMins) {
+        if (rainInMins < washMins) {
+          cls = 'unsafe'; icon = '🌧️'; verdict = 'Don\'t Start!';
+          subtext = `Rain expected in ~${Math.round(rainInMins)} min — before your wash even finishes.`;
+          reasonText = `Rain arrives before your ${washMins}-min wash cycle ends. Wait for a better window.`;
+        } else {
+          cls = 'unsafe'; icon = '⛈️'; verdict = 'Not Enough Time';
+          subtext = `Rain in ~${Math.round(rainInMins)} min, clothes need ${totalMins} min total.`;
+          reasonText = `Your wash takes ${washMins} min + ~${dryMins} min drying = ${totalMins} min. Rain is too close with only ${Math.round(rainInMins)} min window.`;
+        }
+      } else if (rainInMins !== null && rainInMins < totalMins + 90) {
+        cls = 'warn'; icon = '🌤️'; verdict = 'Risky — Be Quick';
+        subtext = `Rain in ~${Math.round(rainInMins)} min. You have ~${Math.round(rainInMins - totalMins)} min to spare.`;
+        reasonText = `It's borderline. You'll finish with a ~${Math.round(rainInMins - totalMins)}-min buffer. Bring clothes in early if the sky darkens.`;
+      } else {
+        cls = 'safe'; icon = '✅'; verdict = 'Go For It!';
+        const buf = rainInMins ? `Rain not expected for ~${Math.round(rainInMins / 60)}h.` : 'No rain expected in the next 24 hours.';
+        subtext = `Clothes should be dry in ~${dryMins} min. ${buf}`;
+        reasonText = `Total time needed: ${washMins} min wash + ~${dryMins} min dry = ${totalMins} min. You have plenty of clear weather ahead.`;
+      }
+
+      // Render
+      document.getElementById('resIcon').textContent = icon;
+      document.getElementById('resVerdict').textContent = verdict;
+      document.getElementById('resSub').textContent = subtext;
+      document.getElementById('reason').textContent = reasonText;
+
+      const wg = document.getElementById('weatherGrid');
+      wg.innerHTML = `
+        <div class="weather-item"><div class="wi-label">🌡 Temperature</div><div class="wi-val">${temp.toFixed(1)}°C</div></div>
+        <div class="weather-item"><div class="wi-label">💧 Humidity</div><div class="wi-val">${humidity}%</div></div>
+        <div class="weather-item"><div class="wi-label">🌬 Wind</div><div class="wi-val">${wind.toFixed(1)} km/h</div></div>
+        <div class="weather-item"><div class="wi-label">☁ Cloud cover</div><div class="wi-val">${cloud}%</div></div>
+      `;
+
+      const rainStr = rainInMins != null
+        ? `<span class="tl-val ${rainInMins < totalMins + safeMarginMins ? 'bad' : 'good'}">~${Math.round(rainInMins)} min</span>`
+        : `<span class="tl-val good">None in 24h</span>`;
+
+      const methodLabel = { outside: 'Outdoor line', rack_in: 'Indoor rack', rack_out: 'Balcony rack' }[method];
+
+      document.getElementById('timeline').innerHTML = `
+        <div class="timeline-row"><span class="tl-label">⏰ Wash cycle</span><span class="tl-val">${washMins} min</span></div>
+        <div class="timeline-row"><span class="tl-label">🌿 Dry time (${methodLabel})</span><span class="tl-val warn">~${dryMins} min</span></div>
+        <div class="timeline-row"><span class="tl-label">📦 Total time needed</span><span class="tl-val">${totalMins} min</span></div>
+        <div class="timeline-row"><span class="tl-label">🌧 Rain arrives in</span>${rainStr}</div>
+        <div class="timeline-row"><span class="tl-label">💦 Rain chance now</span><span class="tl-val ${precipNow >= RAIN_THRESHOLD ? 'bad' : 'good'}">${precipNow}%</span></div>
+      `;
+
+      result.className = 'result ' + cls;
+      result.style.display = 'block';
+      result.scrollIntoView({ behavior: 'smooth', block: 'nearest' });
+
+    } catch (e) {
+      document.getElementById('resIcon').textContent = '⚠️';
+      document.getElementById('resVerdict').textContent = 'Error';
+      document.getElementById('resSub').textContent = 'Could not fetch weather data. Check your connection.';
+      document.getElementById('reason').textContent = e.message;
+      document.getElementById('weatherGrid').innerHTML = '';
+      document.getElementById('timeline').innerHTML = '';
+      result.className = 'result warn';
+      result.style.display = 'block';
+    }
+
+    spinner.style.display = 'none';
+    checkBtn.disabled = false;
+  }
+</script>
+</body>
+</html>
