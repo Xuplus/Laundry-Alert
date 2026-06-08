@@ -438,8 +438,8 @@
         <span data-i18n="washTimeLabel">Washing machine time</span>
         <small data-i18n="washTimeHint">How long your wash cycle takes</small>
       </label>
-      <input type="range" id="washTime" min="30" max="180" step="10" value="60" oninput="updateVal('washTime','washVal','min')" />
-      <span class="val-badge" id="washVal">60 min</span>
+      <input type="range" id="washTime" min="15" max="180" step="5" value="60" oninput="updateVal('washTime','washVal')" />
+      <span class="val-badge" id="washVal">1h</span>
     </div>
 
     <div class="input-row">
@@ -550,16 +550,16 @@
       errorSub: "Could not fetch weather data. Check your connection.",
       subHumidity: "Humidity is too high for outdoor drying.",
       subFreezing: "Temperatures are near freezing.",
-      subRainBeforeWash: r => `Rain expected in ~${r} min — before your wash even finishes.`,
-      subNotEnoughTime: (r, t) => `Rain in ~${r} min, clothes need ${t} min total.`,
-      subRisky: (r, t) => `Rain in ~${r} min. You have ~${Math.round(r - t)} min to spare.`,
-      subSafe: (dry, buf) => `Clothes should be dry in ~${dry} min. ${buf}`,
+      subRainBeforeWash: r => `Rain expected in ~${fmtMins(r)} — before your wash even finishes.`,
+      subNotEnoughTime: (r, t) => `Rain in ~${fmtMins(r)}, clothes need ${fmtMins(t)} total.`,
+      subRisky: (r, t) => `Rain in ~${fmtMins(r)}. You have ~${fmtMins(Math.round(r - t))} to spare.`,
+      subSafe: (dry, buf) => `Clothes should be dry in ~${fmtMins(dry)}. ${buf}`,
       reasonHumidity: h => `Current humidity is ${h}% — clothes won't dry properly outside. Try an indoor rack or wait for better conditions.`,
       reasonFreezing: t => `At ${t}°C, drying outside is not effective. Move the clothes indoors.`,
-      reasonRainBeforeWash: w => `Rain arrives before your ${w}-min wash cycle ends. Wait for a better window.`,
-      reasonNotEnoughTime: (w, dry, tot, r) => `Your wash takes ${w} min + ~${dry} min drying = ${tot} min. Rain is too close with only ${r} min window.`,
-      reasonRisky: (r, t) => `It's borderline. You'll finish with a ~${Math.round(r - t)}-min buffer. Bring clothes in early if the sky darkens.`,
-      reasonSafe: (w, dry, tot) => `Total time needed: ${w} min wash + ~${dry} min dry = ${tot} min. You have plenty of clear weather ahead.`,
+      reasonRainBeforeWash: w => `Rain arrives before your ${fmtMins(w)} wash cycle ends. Wait for a better window.`,
+      reasonNotEnoughTime: (w, dry, tot, r) => `Your wash takes ${fmtMins(w)} + ~${fmtMins(dry)} drying = ${fmtMins(tot)}. Rain is too close with only ${fmtMins(r)} window.`,
+      reasonRisky: (r, t) => `It's borderline. You'll finish with a ~${fmtMins(Math.round(r - t))} buffer. Bring clothes in early if the sky darkens.`,
+      reasonSafe: (w, dry, tot) => `Total time needed: ${fmtMins(w)} wash + ~${fmtMins(dry)} dry = ${fmtMins(tot)}. You have plenty of clear weather ahead.`,
       rainNone: "No rain expected in the next 24 hours.",
       rainIn: h => `Rain not expected for ~${h}h.`,
       wiTemp: "🌡 Temperature",
@@ -615,16 +615,16 @@
       errorSub: "No se pudieron obtener los datos del tiempo. Comprueba tu conexión.",
       subHumidity: "La humedad es demasiado alta para secar fuera.",
       subFreezing: "Las temperaturas están cerca de cero.",
-      subRainBeforeWash: r => `Se espera lluvia en ~${r} min — antes de que acabe tu lavado.`,
-      subNotEnoughTime: (r, t) => `Lluvia en ~${r} min, la ropa necesita ${t} min en total.`,
-      subRisky: (r, t) => `Lluvia en ~${r} min. Te sobran ~${Math.round(r - t)} min.`,
-      subSafe: (dry, buf) => `La ropa debería estar seca en ~${dry} min. ${buf}`,
+      subRainBeforeWash: r => `Se espera lluvia en ~${fmtMins(r)} — antes de que acabe tu lavado.`,
+      subNotEnoughTime: (r, t) => `Lluvia en ~${fmtMins(r)}, la ropa necesita ${fmtMins(t)} en total.`,
+      subRisky: (r, t) => `Lluvia en ~${fmtMins(r)}. Te sobran ~${fmtMins(Math.round(r - t))}.`,
+      subSafe: (dry, buf) => `La ropa debería estar seca en ~${fmtMins(dry)}. ${buf}`,
       reasonHumidity: h => `La humedad actual es del ${h}% — la ropa no se secará bien fuera. Usa un tendedero interior o espera mejores condiciones.`,
       reasonFreezing: t => `A ${t}°C secar fuera no es eficaz. Pon la ropa dentro.`,
-      reasonRainBeforeWash: w => `Lloverá antes de que acabe tu ciclo de ${w} min. Espera un mejor momento.`,
-      reasonNotEnoughTime: (w, dry, tot, r) => `Tu lavado dura ${w} min + ~${dry} min de secado = ${tot} min en total. La lluvia llega en solo ${r} min.`,
-      reasonRisky: (r, t) => `Es límite. Terminarás con ~${Math.round(r - t)} min de margen. Mete la ropa pronto si se nubla.`,
-      reasonSafe: (w, dry, tot) => `Tiempo total: ${w} min lavado + ~${dry} min secado = ${tot} min. Tienes tiempo de sobra.`,
+      reasonRainBeforeWash: w => `Lloverá antes de que acabe tu ciclo de ${fmtMins(w)}. Espera un mejor momento.`,
+      reasonNotEnoughTime: (w, dry, tot, r) => `Tu lavado dura ${fmtMins(w)} + ~${fmtMins(dry)} de secado = ${fmtMins(tot)} en total. La lluvia llega en solo ${fmtMins(r)}.`,
+      reasonRisky: (r, t) => `Es límite. Terminarás con ~${fmtMins(Math.round(r - t))} de margen. Mete la ropa pronto si se nubla.`,
+      reasonSafe: (w, dry, tot) => `Tiempo total: ${fmtMins(w)} lavado + ~${fmtMins(dry)} secado = ${fmtMins(tot)}. Tienes tiempo de sobra.`,
       rainNone: "No se espera lluvia en las próximas 24 horas.",
       rainIn: h => `No se espera lluvia en ~${h}h.`,
       wiTemp: "🌡 Temperatura",
@@ -663,8 +663,15 @@
   let userLat = null, userLon = null;
   let citySearchTimeout = null;
 
-  function updateVal(sliderId, displayId, unit) {
-    document.getElementById(displayId).textContent = document.getElementById(sliderId).value + ' ' + unit;
+  function fmtMins(m) {
+    m = Math.round(m);
+    if (m < 60) return m + ' min';
+    const h = Math.floor(m / 60), rem = m % 60;
+    return rem === 0 ? h + 'h' : h + 'h ' + rem + 'min';
+  }
+
+  function updateVal(sliderId, displayId) {
+    document.getElementById(displayId).textContent = fmtMins(document.getElementById(sliderId).value);
   }
 
   function switchTab(tab) {
@@ -916,13 +923,13 @@
       `;
 
       const rainStr = rainInMins != null
-        ? `<span class="tl-val ${rainInMins < totalMins + safeMarginMins ? 'bad' : 'good'}">~${Math.round(rainInMins)} min</span>`
+        ? `<span class="tl-val ${rainInMins < totalMins + safeMarginMins ? 'bad' : 'good'}">~${fmtMins(Math.round(rainInMins))}</span>`
         : `<span class="tl-val good">${T.tlRainNone}</span>`;
 
       document.getElementById('timeline').innerHTML = `
-        <div class="timeline-row"><span class="tl-label">${T.tlWash}</span><span class="tl-val">${washMins} min</span></div>
-        <div class="timeline-row"><span class="tl-label">${T.tlDry(methodLabel)}</span><span class="tl-val warn">~${dryMins} min</span></div>
-        <div class="timeline-row"><span class="tl-label">${T.tlTotal}</span><span class="tl-val">${totalMins} min</span></div>
+        <div class="timeline-row"><span class="tl-label">${T.tlWash}</span><span class="tl-val">${fmtMins(washMins)}</span></div>
+        <div class="timeline-row"><span class="tl-label">${T.tlDry(methodLabel)}</span><span class="tl-val warn">~${fmtMins(dryMins)}</span></div>
+        <div class="timeline-row"><span class="tl-label">${T.tlTotal}</span><span class="tl-val">${fmtMins(totalMins)}</span></div>
         <div class="timeline-row"><span class="tl-label">${T.tlRain}</span>${rainStr}</div>
         <div class="timeline-row"><span class="tl-label">${T.tlRainNow}</span><span class="tl-val ${precipNow >= RAIN_THRESHOLD ? 'bad' : 'good'}">${precipNow}%</span></div>
       `;
