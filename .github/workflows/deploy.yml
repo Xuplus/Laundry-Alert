@@ -34,13 +34,9 @@ jobs:
             https://api.github.com/repos/${{ github.repository }}/pages \
             -d '{"build_type":"workflow"}')
           echo "Pages enable response: $response"
-          # 201 = created, 409 = already exists — both are fine
           if [ "$response" != "201" ] && [ "$response" != "409" ]; then
-            echo "Warning: unexpected status $response (Pages may need manual enablement)"
+            echo "Warning: status $response — Pages may need manual enablement in repo settings"
           fi
-
-      - name: Setup Pages
-        uses: actions/configure-pages@v5
 
       - name: Upload artifact
         uses: actions/upload-pages-artifact@v3
